@@ -1,0 +1,5 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">唐DM热点</string>
+    <string name="accessibility_service_description">用于唐DM热点自启动应用的后台保活服务，不执行任何界面操作。</string>
+</resources>
