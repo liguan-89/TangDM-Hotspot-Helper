@@ -17,57 +17,37 @@
 - **系统内核**：Dlink1.0
 - **处理器**：高通八核
 
-## 📁 项目结构
+## 🚀 获取APK
 
-```
-TangDMHotspotSimple/
-├── src/main/java/com/tangdm/hotspotsimple/
-│   ├── HotspotHelper.java      # 热点控制核心
-│   ├── BootReceiver.java       # 开机广播接收器
-│   ├── HotspotService.java     # 后台保活服务
-│   ├── SimpleAccessibilityService.java  # 无障碍服务
-│   └── MainActivity.java       # 配置界面
-├── src/main/res/               # 资源文件
-├── build.gradle                # 构建配置
-├── AndroidManifest.xml         # 应用清单
-├── build.sh                    # 一键构建脚本
-└── README.md                   # 本文件
-```
+### 自动构建状态
+![GitHub Actions](https://github.com/liguan-89/TangDM-Hotspot-Helper/actions/workflows/build.yml/badge.svg)
 
-## 🚀 快速开始
+### 下载APK
+1. 访问 [Actions页面](https://github.com/liguan-89/TangDM-Hotspot-Helper/actions)
+2. 点击最新的成功构建
+3. 在"Artifacts"部分下载 `TangDM-Hotspot-APK`
+4. 解压得到APK文件
 
-### 1. 构建APK
+## 📦 安装到车机
 
+### 方法1：ADB安装（推荐）
 ```bash
-# 给构建脚本执行权限
-chmod +x build.sh
-
-# 执行构建
-./build.sh
+adb install app-debug.apk
 ```
 
-构建完成后，APK文件位于：`app/build/outputs/apk/debug/app-debug.apk`
-
-### 2. 安装到车机
-
-#### 方法1：ADB安装（推荐）
-```bash
-adb install app/build/outputs/apk/debug/app-debug.apk
-```
-
-#### 方法2：U盘安装
+### 方法2：U盘安装
 1. 将APK文件复制到U盘
 2. 将U盘插入车机USB接口
 3. 用车机文件管理器打开APK文件安装
 
-### 3. 配置应用
+## 🔧 配置步骤
 
-#### 首次运行配置步骤：
-1. **打开应用**：在车机上找到"唐DM热点"应用并打开
+### 首次运行配置
+1. **打开应用**：在车机上找到"唐DM热点助手"应用并打开
 2. **开启无障碍权限**：
    - 点击"🔧 开启无障碍权限"按钮
    - 系统会跳转到无障碍设置
-   - 找到"唐DM热点"并开启开关
+   - 找到"唐DM热点助手"并开启开关
    - 返回应用
 3. **测试热点功能**：
    - 点击"📡 立即测试热点"按钮
@@ -77,139 +57,91 @@ adb install app/build/outputs/apk/debug/app-debug.apk
    - 点击"✅ 完成配置（后台运行）"
    - 应用将进入后台运行模式
 
-### 4. 测试自启动
-
+### 测试自启动
 1. **重启车机**：完全关闭车机电源后重新启动
 2. **等待5秒**：车机启动后等待约5秒
 3. **检查热点**：查看热点是否自动开启
-4. **查看日志**（可选）：
-   ```bash
-   adb logcat | grep TangDMHotspot
-   ```
 
-## 🔧 技术实现
+## 🔍 故障排除
+
+### 查看日志
+```bash
+adb logcat | grep TangDMHotspot
+```
+
+### 常见问题
+1. **热点无法开启**：检查WiFi是否已关闭（热点和WiFi不能同时开启）
+2. **无障碍服务问题**：重启车机后重试
+3. **应用被系统清理**：将应用加入白名单，关闭电池优化
+
+## 📁 项目结构
+
+```
+TangDMHotspotSimple/
+├── app/
+│   ├── src/main/java/com/tangdm/hotspotsimple/
+│   │   ├── HotspotHelper.java      # 热点控制核心
+│   │   ├── BootReceiver.java       # 开机广播接收器
+│   │   ├── HotspotService.java     # 后台保活服务
+│   │   ├── SimpleAccessibilityService.java  # 无障碍服务
+│   │   └── MainActivity.java       # 配置界面
+│   └── build.gradle                # 应用构建配置
+├── build.gradle                    # 项目构建配置
+├── settings.gradle                 # 项目设置
+└── .github/workflows/build.yml     # GitHub Actions自动构建配置
+```
+
+## 🛠️ 技术实现
 
 ### 核心功能
-
-#### 1. 开机自启动
-- 注册`BOOT_COMPLETED`广播接收器
-- 延迟5秒执行（避免系统未完全就绪）
-- 自动调用热点API
-
-#### 2. 热点控制
-- 使用`WifiManager.setWifiApEnabled()`反射调用
-- 自动处理WiFi关闭（热点和WiFi不能同时开启）
-- 支持重试机制
-
-#### 3. 后台保活
-- 使用`START_STICKY`服务保活
-- 极简无障碍服务维持权限
-- 自动重启机制
+1. **开机自启动**：注册`BOOT_COMPLETED`广播接收器，延迟5秒执行
+2. **热点控制**：使用`WifiManager.setWifiApEnabled()`反射调用系统API
+3. **无障碍服务**：极简无障碍服务用于应用保活
+4. **后台保活**：使用`START_STICKY`服务保持后台运行
 
 ### 热点配置
 - **SSID**：`TangDM_设备后4位`（如：TangDM_ABCD）
 - **密码**：`12345678`（WPA2 PSK加密）
 - **频段**：2.4GHz（兼容性好）
 
-## 📊 状态监控
-
-### 查看应用状态
-```bash
-# 查看应用日志
-adb logcat | grep TangDMHotspot
-
-# 查看热点状态
-adb shell dumpsys wifi | grep -A5 -B5 "Hotspot"
-
-# 查看运行进程
-adb shell ps | grep tangdm
-```
-
-### 应用界面状态显示
-应用主界面显示以下状态信息：
-- 热点状态（已开启/未开启）
-- 热点信息（SSID等）
-- 无障碍服务状态
-- 自启动状态
-- 车机系统信息
-
-## ⚠️ 注意事项
-
-### 权限要求
-- **无障碍权限**：必须开启，用于应用保活
-- **网络权限**：用于控制热点
-- **开机启动权限**：系统自动授予
-
-### 已知限制
-1. **WiFi与热点冲突**：开启热点时会自动关闭WiFi
-2. **系统限制**：部分车机系统可能限制后台服务
-3. **电池优化**：可能需要关闭电池优化
-
-### 故障排除
-
-#### 问题1：热点无法自动开启
-- 检查无障碍权限是否开启
-- 查看应用日志：`adb logcat | grep TangDMHotspot`
-- 手动测试热点功能
-
-#### 问题2：应用被系统清理
-- 检查车机后台管理设置
-- 将应用加入白名单
-- 关闭电池优化
-
-#### 问题3：热点开启但无法连接
-- 检查热点密码：`12345678`
-- 重启热点：在应用内重新测试
-- 检查车机网络设置
-
-## 🔄 更新和维护
-
-### 当前版本
-- **版本号**：1.0
-- **构建时间**：2026年2月9日
-- **状态**：稳定运行
-
-### 无需维护说明
-本应用为个人专用，功能稳定后无需更新维护。如遇系统升级或功能异常，可重新构建安装。
-
 ## 📞 技术支持
 
+### 问题反馈
+如遇问题，请提供：
+1. 车机具体型号和系统版本
+2. 问题发生时的操作步骤
+3. 完整的日志输出：`adb logcat | grep TangDMHotspot`
+4. 期望的行为和实际行为
+
 ### 日志收集
-如需技术支持，请提供以下日志：
 ```bash
-# 收集完整日志
+# 收集应用日志
 adb logcat -d | grep TangDMHotspot > hotspot_log.txt
 
-# 检查系统信息
+# 收集错误日志
+adb logcat -d *:E > error_log.txt
+
+# 收集系统信息
 adb shell getprop | grep -E "ro.build|ro.product" > system_info.txt
 ```
 
-### 问题反馈
-如遇问题，请记录：
-1. 车机具体型号和系统版本
-2. 问题发生时的操作步骤
-3. 完整的日志输出
-4. 期望的行为和实际行为
+## 🔄 构建说明
+
+### 本地构建
+```bash
+chmod +x gradlew
+./gradlew assembleDebug
+```
+
+### 自动构建
+本项目配置了GitHub Actions自动构建，每次推送代码到main分支或手动触发工作流时自动构建APK。
+
+## 📄 许可证
+
+本项目为个人使用开发，不提供任何保证。使用者需自行承担风险。
 
 ---
 
-## 🎯 开发目标达成
+**构建状态**: [![GitHub Actions](https://github.com/liguan-89/TangDM-Hotspot-Helper/actions/workflows/build.yml/badge.svg)](https://github.com/liguan-89/TangDM-Hotspot-Helper/actions)
 
-✅ **核心功能完成**：
-- [x] 开机5秒自启动
-- [x] 无障碍权限获取
-- [x] 热点API直接调用
-- [x] 后台保活机制
-- [x] 简单配置界面
-
-✅ **比亚迪唐DM适配**：
-- [x] Android 7.0兼容
-- [x] Dlink1.0系统测试
-- [x] 状态栏快捷开关兼容
-
-✅ **部署使用**：
-- [x] 一键构建脚本
-- [x] 详细使用说明
-- [x] 故障排除指南
-
-**应用已准备就绪，可直接构建安装到您的比亚迪唐DM车机！** 🚗💨
+**最后构建时间**: 请查看GitHub Actions页面
