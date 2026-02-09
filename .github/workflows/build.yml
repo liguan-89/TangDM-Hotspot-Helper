@@ -1,11 +1,9 @@
-name: Build Android APK
+name: Build Android APK (Simple)
 
 on:
   push:
     branches: [ main ]
-  pull_request:
-    branches: [ main ]
-  workflow_dispatch:  # 允许手动触发
+  workflow_dispatch:
 
 jobs:
   build:
@@ -20,49 +18,37 @@ jobs:
         java-version: '17'
         distribution: 'temurin'
     
-    - name: Setup Android SDK
-      uses: android-actions/setup-android@v3
-      with:
-        packages: |
-          platforms;android-24
-          build-tools;30.0.3
-          platform-tools
-        accept-android-sdk-licenses: true
+    - name: Install Android SDK
+      run: |
+        # 下载命令行工具
+        wget -q https://dl.google.com/android/repository/commandlinetools-linux-9477386_latest.zip
+        mkdir -p android-sdk
+        unzip -q commandlinetools-linux-9477386_latest.zip -d android-sdk
+        mv android-sdk/cmdline-tools android-sdk/latest
+        mkdir -p android-sdk/cmdline-tools
+        mv android-sdk/latest android-sdk/cmdline-tools/
+        
+        # 设置环境变量
+        echo "ANDROID_SDK_ROOT=$PWD/android-sdk" >> $GITHUB_ENV
+        echo "$PWD/android-sdk/cmdline-tools/latest/bin" >> $GITHUB_PATH
+        echo "$PWD/android-sdk/platform-tools" >> $GITHUB_PATH
+        
+        # 接受许可证
+        yes | sdkmanager --licenses || true
+        
+        # 安装Android 7.0 SDK
+        sdkmanager "platforms;android-24"
+        sdkmanager "build-tools;30.0.3"
+        sdkmanager "platform-tools"
     
     - name: Build APK
       run: |
         chmod +x gradlew
-        ./gradlew assembleDebug
+        ./gradlew assembleDebug --stacktrace
     
     - name: Upload APK
       uses: actions/upload-artifact@v4
       with:
         name: TangDM-Hotspot-APK
         path: app/build/outputs/apk/debug/app-debug.apk
-    
-    - name: Create Release
-      if: github.event_name == 'workflow_dispatch'
-      uses: softprops/action-gh-release@v1
-      with:
-        files: app/build/outputs/apk/debug/app-debug.apk
-        tag_name: v1.0
-        name: TangDM Hotspot Helper v1.0
-        body: |
-          比亚迪唐DM热点自启动应用
-          
-          功能特点：
-          - 开机5秒自启动热点
-          - 无障碍权限保活
-          - 简单配置界面
-          - 后台稳定运行
-          
-          系统要求：
-          - Android 7.0 (API 24)
-          - 比亚迪Dlink1.0系统
-          
-          安装说明：
-          1. 下载APK文件
-          2. 安装到车机
-          3. 开启无障碍权限
-          4. 测试热点功能
-          5. 重启测试自启动
+        if-no-files-found: error
